@@ -1,0 +1,88 @@
+class Hour {
+  int _passengers;
+  String _comment;
+
+  Hour(this._passengers, this._comment);
+
+  // Геттери
+  int get passengers => _passengers;
+  String get comment => _comment;
+
+  // Сеттери
+  set passengers(int value) {
+    if (value >= 0) {
+      _passengers = value;
+    }
+  }
+
+  set comment(String value) {
+    _comment = value;
+  }
+
+  @override
+  String toString() {
+    return "Hour(passengers: $_passengers, comment: '$_comment')";
+  }
+}
+
+class MetroStation {
+  String _name;
+  int _yearOpened;
+  Set<Hour> _hours = {};
+
+  MetroStation(this._name, this._yearOpened);
+
+  // Геттери
+  String get name => _name;
+  int get yearOpened => _yearOpened;
+
+  // Сеттери
+  set name(String value) => _name = value;
+  set yearOpened(int value) => _yearOpened = value;
+
+  // Додавання години
+  void addHour(Hour hour) {
+    _hours.add(hour);
+  }
+
+  // Сумарна кількість пасажирів
+  int totalPassengers() {
+    return _hours.fold(0, (sum, hour) => sum + hour.passengers);
+  }
+
+  // Година з мінімальною кількістю пасажирів
+  Hour? minPassengersHour() {
+    if (_hours.isEmpty) return null;
+    return _hours.reduce((a, b) =>
+        a.passengers < b.passengers ? a : b);
+  }
+
+  // Година з найбільшою кількістю слів у коментарі
+  Hour? maxWordsInCommentHour() {
+    if (_hours.isEmpty) return null;
+    return _hours.reduce((a, b) =>
+        a.comment.split(" ").length > b.comment.split(" ").length ? a : b);
+  }
+
+  @override
+  String toString() {
+    return "MetroStation(name: $_name, yearOpened: $_yearOpened)";
+  }
+}
+
+void main() {
+  // Створюємо станцію метро
+  MetroStation station = MetroStation("Хрещатик", 1960);
+
+  // Додаємо години
+  station.addHour(Hour(120, "Ранковий час пік"));
+  station.addHour(Hour(45, "Мало людей"));
+  station.addHour(Hour(200, "Дуже багато пасажирів у вагоні метро"));
+
+  print(station);
+
+  // Викликаємо методи
+  print("Сумарна кількість пасажирів: ${station.totalPassengers()}");
+  print("Година з мінімальною кількістю пасажирів: ${station.minPassengersHour()}");
+  print("Година з найбільшою кількістю слів у коментарі: ${station.maxWordsInCommentHour()}");
+}
