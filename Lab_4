@@ -1,0 +1,159 @@
+import 'dart:async';
+
+// ------------------ Клас Hour ------------------
+class Hour {
+  int _passengers;
+  String _comment;
+
+  Hour(this._passengers, this._comment);
+
+  int get passengers => _passengers;
+  String get comment => _comment;
+
+  set passengers(int value) {
+    if (value >= 0) _passengers = value;
+  }
+
+  set comment(String value) => _comment = value;
+
+  @override
+  String toString() {
+    return "Hour(passengers: $_passengers, comment: '$_comment')";
+  }
+}
+
+// ------------------ Generic клас ------------------
+class DataContainer<T> {
+  List<T> _items = [];
+
+  void add(T item) => _items.add(item);
+  List<T> get items => _items;
+
+  // Generic метод 1: пошук за умовою
+  T? find(bool Function(T) condition) {
+    for (var item in _items) {
+      if (condition(item)) return item;
+    }
+    return null;
+  }
+
+  // Generic метод 2: агрегування (наприклад підрахунок)
+  R aggregate<R>(R initialValue, R Function(R, T) combine) {
+    R result = initialValue;
+    for (var item in _items) {
+      result = combine(result, item);
+    }
+    return result;
+  }
+
+  // Generic метод 3: пошук максимального елемента за критерієм
+  T? maxBy(num Function(T) selector) {
+    if (_items.isEmpty) return null;
+    T maxItem = _items.first;
+    num maxValue = selector(maxItem);
+    for (var item in _items) {
+      var value = selector(item);
+      if (value > maxValue) {
+        maxValue = value;
+        maxItem = item;
+      }
+    }
+    return maxItem;
+  }
+}
+
+// ------------------ Клас MetroStation ------------------
+class MetroStation {
+  String _name;
+  int _yearOpened;
+  DataContainer<Hour> _hours = DataContainer<Hour>();
+
+  MetroStation(this._name, this._yearOpened);
+
+  String get name => _name;
+  int get yearOpened => _yearOpened;
+
+  set name(String value) => _name = value;
+  set yearOpened(int value) => _yearOpened = value;
+
+  void addHour(Hour hour) => _hours.add(hour);
+
+  // --- Використання generic-методів ---
+  int totalPassengers() =>
+      _hours.aggregate<int>(0, (sum, h) => sum + h.passengers);
+
+  Hour? minPassengersHour() {
+    if (_hours.items.isEmpty) return null;
+    return _hours.items.reduce((a, b) => a.passengers < b.passengers ? a : b);
+  }
+
+  Hour? maxWordsInCommentHour() =>
+      _hours.maxBy((h) => h.comment.split(" ").length);
+
+  @override
+  String toString() => "MetroStation(name: $_name, yearOpened: $_yearOpened)";
+
+  // ------------------ ✅ Асинхронні функції ------------------
+
+  // 1️⃣ Конструктор 1-го виду (Future(() {...}))
+  Future<MetroStation> getFutureWithConstructor1() {
+    return Future(() {
+      print("🔹 Виконується Future з конструктором 1-го виду...");
+      return this;
+    });
+  }
+
+  // 2️⃣ Конструктор 2-го виду (Future.value / Future.error)
+  Future<MetroStation> getFutureWithConstructor2({bool withError = false}) {
+    if (withError) {
+      return Future<MetroStation>.error(
+        "❌ Помилка: не вдалося отримати дані станції",
+      );
+    } else {
+      return Future<MetroStation>.value(this);
+    }
+  }
+}
+
+// ------------------ Асинхронна обробка ------------------
+Future<void> processStationData(MetroStation station) async {
+  try {
+    print("\n=== Початок асинхронної обробки ===");
+
+    // Викликаємо перший Future
+    var result1 = await station.getFutureWithConstructor1();
+    print("✅ Отримано станцію (1-й конструктор): ${result1.name}");
+
+    // Викликаємо другий Future (успіх)
+    var result2 = await station.getFutureWithConstructor2();
+    print("✅ Отримано станцію (2-й конструктор): ${result2.yearOpened}");
+
+    // Викликаємо другий Future з помилкою
+    await station.getFutureWithConstructor2(withError: true);
+  } catch (e) {
+    print("⚠️ Виникла помилка: $e");
+  } finally {
+    print("=== Кінець обробки ===\n");
+  }
+}
+
+// ------------------ main ------------------
+void main() async {
+  MetroStation station = MetroStation("Хрещатик", 1960);
+
+  station.addHour(Hour(120, "Ранковий час пік"));
+  station.addHour(Hour(45, "Мало людей"));
+  station.addHour(Hour(200, "Дуже багато пасажирів у вагоні метро"));
+
+  print(station);
+  print("Сумарна кількість пасажирів: ${station.totalPassengers()}");
+  print(
+    "Година з мінімальною кількістю пасажирів: ${station.minPassengersHour()}",
+  );
+  print(
+    "Година з найбільшою кількістю слів у коментарі: ${station.maxWordsInCommentHour()}",
+  );
+
+  // --- Викликаємо асинхронну функцію ---
+  await processStationData(station);
+}
