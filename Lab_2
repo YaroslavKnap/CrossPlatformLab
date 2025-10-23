@@ -1,0 +1,73 @@
+// Інтерфейс Абітурієнт
+abstract class Abiturient {
+  void submitDocuments();
+  void takeExam();
+}
+
+// Абстрактний клас Студент, який реалізує інтерфейс
+abstract class Student implements Abiturient {
+  String name;
+  int age;
+
+  Student(this.name, this.age);
+
+  void study(); // абстрактний метод для навчання
+}
+
+// Міксин для спортивних навичок
+mixin Sports {
+  void playSport() {
+    print("Student plays sport");
+  }
+}
+
+// Конкретний клас студент факультету
+class FacultyStudent extends Student with Sports {
+  String faculty;
+
+  FacultyStudent(String name, int age, this.faculty) : super(name, age);
+
+  @override
+  void submitDocuments() {
+    print("$name submitted documents to $faculty faculty.");
+  }
+
+  @override
+  void takeExam() {
+    print("$name is taking entrance exams for $faculty faculty.");
+  }
+
+  @override
+  void study() {
+    print("$name studies at the $faculty faculty.");
+  }
+}
+
+void main() {
+  // Абітурієнти
+  List<Abiturient> abiturients = [
+    FacultyStudent("Ivan", 18, "IT"),
+    FacultyStudent("Anna", 19, "Mathematics"),
+  ];
+
+  print("=== Abiturients ===");
+  for (var a in abiturients) {
+    a.submitDocuments();
+    a.takeExam();
+  }
+
+  // Студенти факультету
+  List<Student> students = [
+    FacultyStudent("Oleg", 20, "Physics"),
+    FacultyStudent("Maria", 21, "Chemistry"),
+  ];
+
+  print("\n=== Students ===");
+  for (var s in students) {
+    s.study();
+    // Перевіряємо, чи об'єкт реалізує міксин Sports
+    if (s is FacultyStudent) {
+      s.playSport();
+    }
+  }
+}
